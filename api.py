@@ -1,5 +1,5 @@
 import requests
-
+import json
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 class PetFriends:
@@ -14,14 +14,15 @@ class PetFriends:
             'password': password
         }
         res = requests.get(self.base_url+'api/key', headers=headers)
-        status = res.status_code
-        result = ""
-        try:
-            result = res.json()
-        except:
-            result = res.text
 
-        return status, result
+        status = res.status_code
+        results = ""
+        try:
+            results = res.json()
+        except json.decoder.JSONDecodeError:
+            results = res.text
+
+        return status, results
 
     def get_list_of_pets(self, auth_key, filter):
 
@@ -31,15 +32,15 @@ class PetFriends:
         res = requests.get(self.base_url+'api/pets', headers=headers, params=filter)
 
         status = res.status_code
-        result = ""
+        results = ""
         try:
-            result = res.json()
-        except:
-            result = res.text
+            results = res.json()
+        except json.decoder.JSONDecodeError:
+            results = res.text
 
-        return status, result
+        return status, results
 
-    def add_new_pet_simple(self, auth_key, name, animal_type, age):
+    def add_new_pet_simple(self, auth_key: json, name: str, animal_type: str, age):
 
         headers = {'auth_key': auth_key['key']}
         data = {
@@ -53,15 +54,14 @@ class PetFriends:
         status = res.status_code
 
         results = ""
-        if status == 200:
-            try:
-                results = res.json()
-            except:
-                results = res.text
+        try:
+            results = res.json()
+        except json.decoder.JSONDecodeError:
+            results = res.text
 
         return status, results
 
-    def add_photo_to_pet(self, auth_key, pet_id, pet_photo):
+    def add_photo_to_pet(self, auth_key: json, pet_id: str, pet_photo) -> json:
 
         data = MultipartEncoder(
             fields={'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')}
@@ -73,15 +73,14 @@ class PetFriends:
 
         status = res.status_code
         results = res
-        if status == 200:
-            try:
-                results = res.json()
-            except:
-                results = res.text
+        try:
+            results = res.json()
+        except json.decoder.JSONDecodeError:
+            results = res.text
 
         return status, results
 
-    def add_new_pet(self, auth_key, name, animal_type, age, pet_photo):
+    def add_new_pet(self, auth_key: json, name: str, animal_type: str, age, pet_photo):
 
         data = MultipartEncoder(
             fields={
@@ -99,42 +98,45 @@ class PetFriends:
         results = ""
         try:
             results = res.json()
-        except:
+        except json.decoder.JSONDecodeError:
             results = res.text
 
         return status, results
 
-    def delete_pet(self, auth_key, pet_id):
+    def delete_pet(self, auth_key: json, pet_id: str) -> json:
+        """Метод отправляет на сервер запрос на удаление питомца по указанному ID и возвращает
+        статус запроса и результат в формате JSON с текстом уведомления о успешном удалении"""
 
         headers = {'auth_key': auth_key['key']}
 
         res = requests.delete(self.base_url + 'api/pets/' + pet_id, headers=headers)
         status = res.status_code
-
         results = ""
         try:
             results = res.json()
-        except:
+        except json.decoder.JSONDecodeError:
             results = res.text
 
-        return status
+        return status, results
 
-    def update_pet(self, auth_key, pet_id, name, animal_type, age):
+    def update_pet_info(self, auth_key: json, pet_id: str, name: str,
+                        animal_type: str, age: int) -> json:
+        """Метод отправляет запрос на сервер о обновлении данных питомуа по указанному ID и
+        возвращает статус запроса и result в формате JSON с обновлённыи данными питомца"""
 
         headers = {'auth_key': auth_key['key']}
         data = {
             'name': name,
-            'animal_type': animal_type,
-            'age': age
+            'age': age,
+            'animal_type': animal_type
         }
 
         res = requests.put(self.base_url + 'api/pets/' + pet_id, headers=headers, data=data)
         status = res.status_code
-
         results = ""
         try:
             results = res.json()
-        except:
+        except json.decoder.JSONDecodeError:
             results = res.text
 
         return status, results
