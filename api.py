@@ -2,17 +2,21 @@ import requests
 import json
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+
 class PetFriends:
+    """API библиотека к веб приложению Pet Friends"""
 
     def __init__(self):
         self.base_url = "https://petfriends.skillfactory.ru/"
 
     def get_api_key(self, email, password):
+        """Получение API-ключа"""
 
         headers = {
             'email': email,
             'password': password
         }
+
         res = requests.get(self.base_url+'api/key', headers=headers)
 
         status = res.status_code
@@ -24,7 +28,8 @@ class PetFriends:
 
         return status, results
 
-    def get_list_of_pets(self, auth_key, filter):
+    def get_list_of_pets(self, auth_key: json, filter: str = ""):
+        """Получение списка питомцев"""
 
         headers = {'auth_key': auth_key['key']}
         filter = {'filter': filter}
@@ -41,6 +46,7 @@ class PetFriends:
         return status, results
 
     def add_new_pet_simple(self, auth_key: json, name: str, animal_type: str, age):
+        """Добавление питомца без фото"""
 
         headers = {'auth_key': auth_key['key']}
         data = {
@@ -52,7 +58,6 @@ class PetFriends:
         res = requests.post(self.base_url + 'api/create_pet_simple', headers=headers, data=data)
 
         status = res.status_code
-
         results = ""
         try:
             results = res.json()
@@ -61,7 +66,8 @@ class PetFriends:
 
         return status, results
 
-    def add_photo_to_pet(self, auth_key: json, pet_id: str, pet_photo) -> json:
+    def add_photo_to_pet(self, auth_key: json, pet_id: str, pet_photo: str) -> json:
+        # Добавление фото питомца
 
         data = MultipartEncoder(
             fields={'pet_photo': (pet_photo, open(pet_photo, 'rb'), 'image/jpeg')}
@@ -81,6 +87,7 @@ class PetFriends:
         return status, results
 
     def add_new_pet(self, auth_key: json, name: str, animal_type: str, age, pet_photo):
+        # Добавление питомца с фото
 
         data = MultipartEncoder(
             fields={
@@ -93,8 +100,8 @@ class PetFriends:
         headers = {'auth_key': auth_key['key'], 'Content-Type': data.content_type}
 
         res = requests.post(self.base_url + 'api/pets', headers=headers, data=data)
-        status = res.status_code
 
+        status = res.status_code
         results = ""
         try:
             results = res.json()
@@ -104,12 +111,12 @@ class PetFriends:
         return status, results
 
     def delete_pet(self, auth_key: json, pet_id: str) -> json:
-        """Метод отправляет на сервер запрос на удаление питомца по указанному ID и возвращает
-        статус запроса и результат в формате JSON с текстом уведомления о успешном удалении"""
+        # Удаление питомца по указанному ID
 
         headers = {'auth_key': auth_key['key']}
 
         res = requests.delete(self.base_url + 'api/pets/' + pet_id, headers=headers)
+
         status = res.status_code
         results = ""
         try:
@@ -120,9 +127,8 @@ class PetFriends:
         return status, results
 
     def update_pet_info(self, auth_key: json, pet_id: str, name: str,
-                        animal_type: str, age: int) -> json:
-        """Метод отправляет запрос на сервер о обновлении данных питомуа по указанному ID и
-        возвращает статус запроса и result в формате JSON с обновлённыи данными питомца"""
+                        animal_type: str, age) -> json:
+        # Обновление данных о питомце
 
         headers = {'auth_key': auth_key['key']}
         data = {
@@ -140,5 +146,3 @@ class PetFriends:
             results = res.text
 
         return status, results
-
-
